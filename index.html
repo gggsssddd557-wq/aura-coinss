@@ -2,357 +2,322 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="theme-color" content="#100b25">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <title>Aura Coins</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
-*{box-sizing:border-box}
-body{
- margin:0;padding:22px 15px 40px;
- background:radial-gradient(circle at 50% 0%,#39205f,#100b25 55%);
- color:white;font-family:Arial,sans-serif;text-align:center;
+* { box-sizing:border-box; }
+body {
+    margin:0; background:linear-gradient(180deg,#100925,#211044);
+    color:white;font-family:Arial,sans-serif;text-align:center;
+    min-height:100vh;padding:20px 16px;
 }
-h1{color:#e6c7ff;font-size:30px;margin:8px}
-.subtitle{color:#a99abd;font-size:13px}
-.card{
- max-width:440px;margin:17px auto;padding:21px;
- border:1px solid #60448b;border-radius:23px;
- background:linear-gradient(145deg,#282044,#19152d);
- box-shadow:0 10px 35px #0005;
+h1 {color:#ffd76a;margin:10px 0;}
+.card {
+    background:#29174a;border:1px solid #51367a;
+    border-radius:18px;padding:16px;margin:14px auto;
+    max-width:440px;
 }
-.coins{font-size:39px;font-weight:bold;color:#ffd879;margin:12px}
-#coin{
- display:block;margin:12px auto;width:145px;height:145px;
- border-radius:50%;font-size:85px;line-height:145px;
- background:radial-gradient(circle,#ffe9a3,#e7a92d 65%,#9d5c16);
- box-shadow:0 0 35px #ffcb5977;
- cursor:pointer;user-select:none;touch-action:manipulation;
- transition:transform .08s;
- -webkit-tap-highlight-color:transparent;
+#balance {font-size:40px;font-weight:bold;color:#ffdc73;}
+#coin {
+    width:170px;height:170px;border-radius:50%;
+    border:5px solid #ffdf75;
+    background:radial-gradient(circle,#ffe98a,#d99821);
+    color:#6d3900;font-size:55px;font-weight:bold;
+    margin:20px auto;cursor:pointer;user-select:none;
+    box-shadow:0 0 30px #e5a62e55;
+    touch-action:manipulation;
 }
-#coin:active{transform:scale(.88)}
-#coin.pop{animation:pop .12s ease}
-@keyframes pop{
- 0%{transform:scale(1)}
- 50%{transform:scale(.88)}
- 100%{transform:scale(1)}
+#coin:active {transform:scale(.94);}
+button {
+    border:0;border-radius:12px;padding:14px;
+    font-size:16px;font-weight:bold;color:white;
+    background:#7045bd;cursor:pointer;width:100%;
+    margin-top:8px;touch-action:manipulation;
 }
-button{
- border:0;border-radius:15px;padding:13px 17px;
- background:linear-gradient(100deg,#a66bff,#7040c5);
- color:white;font-size:16px;font-weight:bold;
- cursor:pointer;width:100%;margin-top:10px;
+button:disabled {opacity:.45;cursor:not-allowed;}
+.shop button {background:#52318d;}
+.small {color:#b9a6d8;font-size:14px;}
+#energyBar {
+    background:#46305f;border-radius:20px;height:14px;overflow:hidden;
 }
-button:disabled{opacity:.45;cursor:default}
-.energy-line{
- height:13px;background:#39304e;border-radius:20px;
- overflow:hidden;margin:12px 0 5px;
+#energyFill {
+    height:100%;width:100%;background:#65e4b1;
+    transition:width .15s;
 }
-#energyBar{
- height:100%;width:100%;
- background:linear-gradient(90deg,#42e5c2,#a3ffbb);
- transition:width .3s;
-}
-.small{font-size:13px;color:#bcb0d0}
-.upgrade{
- background:#30264a;border-radius:15px;
- padding:14px;margin-top:12px;text-align:left;
-}
-.upgrade button{background:#8b5be0}
-.row{display:flex;justify-content:space-between;gap:10px}
-.row button{width:auto;min-width:115px;margin:0}
-h2{font-size:20px;color:#e6c7ff;margin:3px 0 13px}
-ol{padding-left:25px;margin-bottom:0}
-li{padding:8px;text-align:left;border-bottom:1px solid #ffffff12}
-#status{font-size:12px;color:#bcb0d0;margin-top:14px}
+#status {font-size:13px;color:#c9b7e5;min-height:20px;}
+ul {padding:0;list-style:none;}
+li {padding:8px;border-bottom:1px solid #483260;}
 </style>
 </head>
 
 <body>
-<h1>✨ AURA COINS</h1>
-<div class="subtitle">Твоя энергия. Твои монеты. Твой путь.</div>
+
+<h1>✨ Aura Coins ✨</h1>
 
 <div class="card">
- <div class="small">ТВОЙ БАЛАНС</div>
- <div class="coins" id="coins">0 🪙</div>
- <div id="coin">🪙</div>
- <div class="small">Награда за тап: <b id="power">+1</b> 🪙</div>
- <div class="small" style="margin-top:20px">⚡ ЭНЕРГИЯ</div>
- <div class="energy-line"><div id="energyBar"></div></div>
- <div class="small" id="energy">Загрузка...</div>
- <p id="status">Подключение...</p>
+    <div id="balance">0</div>
+    <div class="small">Aura Coins</div>
+
+    <button id="coin">A</button>
+
+    <div>Энергия: <span id="energy">0 / 0</span></div>
+    <div id="energyBar"><div id="energyFill"></div></div>
+    <p id="status"></p>
+</div>
+
+<div class="card shop">
+    <h2>🛒 Улучшения</h2>
+
+    <div>
+        <b>Сила клика</b>
+        <p class="small">Больше монет за нажатие</p>
+        <button id="clickUpgrade"></button>
+    </div>
+
+    <div style="margin-top:15px">
+        <b>Максимальная энергия</b>
+        <p class="small">Увеличивает запас энергии</p>
+        <button id="energyUpgrade"></button>
+    </div>
 </div>
 
 <div class="card">
- <h2>🛒 Магазин улучшений</h2>
- <div class="upgrade">
-  <div class="row">
-   <div><b>👆 Сила клика</b><div class="small">Больше монет за тап</div></div>
-   <b id="clickLevel">Ур. 0</b>
-  </div>
-  <button id="clickBuy">Улучшить</button>
- </div>
- <div class="upgrade">
-  <div class="row">
-   <div><b>⚡ Запас энергии</b><div class="small">Больше максимальной энергии</div></div>
-   <b id="energyLevel">Ур. 0</b>
-  </div>
-  <button id="energyBuy">Улучшить</button>
- </div>
+    <h2>🎁 Ежедневная награда</h2>
+    <button id="daily">Получить +100 монет</button>
 </div>
 
 <div class="card">
- <h2>🎁 Ежедневная награда</h2>
- <div class="small">Забирай 100 монет раз в 24 часа</div>
- <button id="daily">Получить +100 🪙</button>
-</div>
-
-<div class="card">
- <h2>🏆 Рейтинг игроков</h2>
- <ol id="top">Загрузка...</ol>
+    <h2>🏆 Лидеры</h2>
+    <ul id="leaders">Загрузка...</ul>
 </div>
 
 <script>
-"use strict";
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-const API = "https://aura-coinss.onrender.com";
-const tg = window.Telegram?.WebApp;
+const headers = {
+    "Content-Type": "application/json",
+    "Authorization": tg.initData
+};
 
-let auth = "";
-let state = null;
-let busy = false;
-let tapQueue = 0;
-let processingTaps = false;
+let data = null;
+let queue = 0;
+let processing = false;
+let actionBusy = false;
+let syncError = false;
 
-const el = id => document.getElementById(id);
+const balanceEl = document.getElementById("balance");
+const energyEl = document.getElementById("energy");
+const energyFill = document.getElementById("energyFill");
+const statusEl = document.getElementById("status");
+const coin = document.getElementById("coin");
+const clickBtn = document.getElementById("clickUpgrade");
+const energyBtn = document.getElementById("energyUpgrade");
 
-if (!tg) {
- el("status").textContent = "Открой игру через Telegram.";
-} else {
- tg.ready();
- tg.expand();
- auth = tg.initData || "";
+function getClickPrice(d) {
+    return 50 * ((d.click_level || 0) + 1);
+}
+function getEnergyPrice(d) {
+    return 100 * ((d.energy_level || 0) + 1);
 }
 
-async function request(path, method = "GET") {
- if (!auth) throw new Error("Открой игру через Telegram.");
+function render() {
+    if (!data) return;
 
- const response = await fetch(API + path, {
-  method,
-  headers: {
-   "Authorization": auth
-  }
- });
+    balanceEl.textContent = Math.floor(data.balance || 0);
+    energyEl.textContent = `${data.energy || 0} / ${data.max_energy || 0}`;
 
- let data;
+    const percent = data.max_energy > 0
+        ? (data.energy / data.max_energy) * 100 : 0;
 
- try {
-  data = await response.json();
- } catch {
-  throw new Error("Сервер вернул неправильный ответ.");
- }
+    energyFill.style.width = percent + "%";
 
- if (!response.ok) {
-  throw new Error(data.detail || "Ошибка " + response.status);
- }
+    clickBtn.textContent =
+        `Улучшить клик — ${getClickPrice(data)} 🪙`;
 
- return data;
+    energyBtn.textContent =
+        `Увеличить энергию — ${getEnergyPrice(data)} 🪙`;
+
+    clickBtn.disabled =
+        actionBusy || processing || queue > 0 ||
+        data.balance < getClickPrice(data);
+
+    energyBtn.disabled =
+        actionBusy || processing || queue > 0 ||
+        data.balance < getEnergyPrice(data);
+
+    coin.disabled = data.energy <= 0 || syncError;
 }
 
-function render(data) {
- state = data;
-
- el("coins").textContent = data.coins + " 🪙";
- el("power").textContent = "+" + data.click_power;
-
- el("energy").textContent =
-  data.energy + " / " + data.max_energy;
-
- el("energyBar").style.width =
-  Math.max(0, Math.min(100,
-   data.energy / data.max_energy * 100
-  )) + "%";
-
- el("clickLevel").textContent =
-  "Ур. " + data.click_level;
-
- el("energyLevel").textContent =
-  "Ур. " + data.energy_level;
-
- const clickPrice = 50 * (data.click_level + 1);
- const energyPrice = 100 * (data.energy_level + 1);
-
- el("clickBuy").textContent =
-  "Улучшить · " + clickPrice + " 🪙";
-
- el("energyBuy").textContent =
-  "Улучшить · " + energyPrice + " 🪙";
-
- el("clickBuy").disabled = data.coins < clickPrice;
- el("energyBuy").disabled = data.coins < energyPrice;
-
- el("daily").disabled = !data.daily_ready;
- el("daily").textContent = data.daily_ready
-  ? "Получить +100 🪙"
-  : "Уже получено сегодня";
+function showStatus(message) {
+    statusEl.textContent = message;
 }
 
-async function leaderboard() {
- try {
-  const rows = await request("/api/top");
-  const list = el("top");
-  list.replaceChildren();
+async function request(url, options = {}) {
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...headers,
+            ...(options.headers || {})
+        }
+    });
 
-  rows.forEach((player, index) => {
-   const li = document.createElement("li");
-   li.textContent =
-    (index + 1) + ". " +
-    player.name + " — " +
-    player.coins + " 🪙";
-   list.appendChild(li);
-  });
+    if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+    }
 
-  if (!rows.length) {
-   list.textContent = "Пока нет игроков";
-  }
- } catch {
-  el("top").textContent = "Рейтинг недоступен";
- }
+    return response.json();
 }
 
 async function load() {
- if (!auth) {
-  el("status").textContent =
-   "Открой игру через кнопку в Telegram.";
-  return;
- }
-
- try {
-  const data = await request("/api/me");
-  render(data);
-  el("status").textContent = "✨ Aura Coins подключена!";
-  leaderboard();
- } catch (error) {
-  el("status").textContent = "Ошибка: " + error.message;
- }
+    try {
+        const result = await request("/api/me");
+        data = result;
+        syncError = false;
+        render();
+        showStatus("");
+        return true;
+    } catch (e) {
+        showStatus("Не удалось соединиться. Попробуй обновить игру.");
+        return false;
+    }
 }
 
-// Мгновенное визуальное начисление
-function tap() {
- if (!auth || busy || !state) return;
- if (state.energy <= 0) return;
+coin.onclick = function() {
+    if (!data || data.energy <= 0 || syncError) return;
 
- el("coin").classList.remove("pop");
- void el("coin").offsetWidth;
- el("coin").classList.add("pop");
+    // Мгновенное отображение клика
+    data.balance += data.click_power;
+    data.energy -= 1;
+    queue++;
 
- const power = state.click_power;
+    render();
 
- // Сразу обновляем баланс и энергию на экране
- state.coins += power;
- state.energy -= 1;
+    if (!processing) processTapQueue();
+};
 
- el("coins").textContent = state.coins + " 🪙";
- el("energy").textContent =
-  state.energy + " / " + state.max_energy;
-
- el("energyBar").style.width =
-  Math.max(0, Math.min(100,
-   state.energy / state.max_energy * 100
-  )) + "%";
-
- tapQueue++;
-
- processTapQueue();
-}
-
-// Отправка тапов на сервер по очереди
 async function processTapQueue() {
- if (processingTaps) return;
+    if (processing) return;
+    processing = true;
 
- processingTaps = true;
- let latestData = null;
- let failed = false;
+    while (queue > 0) {
+        queue--;
 
- while (tapQueue > 0) {
-  tapQueue--;
+        try {
+            const result = await request("/api/tap", {
+                method: "POST"
+            });
 
-  try {
-   latestData = await request("/api/tap", "POST");
-  } catch (error) {
-   el("status").textContent = "Ошибка синхронизации";
-   tapQueue = 0;
-   failed = true;
-   break;
-  }
- }
+            data = result;
+            syncError = false;
+        } catch (e) {
+            queue = 0;
+            syncError = true;
+            showStatus("Ошибка соединения. Синхронизируем баланс...");
+            break;
+        }
+    }
 
- // Обновляем серверные данные после завершения очереди
- if (latestData) {
-  render(latestData);
-  el("status").textContent = "✨ Aura Coins подключена!";
- }
+    processing = false;
 
- processingTaps = false;
+    // Получаем подтверждённое сервером состояние
+    const ok = await load();
 
- if (failed) {
-  await load();
- }
+    if (!ok) {
+        syncError = true;
+        coin.disabled = true;
+    }
+
+    render();
 }
 
-// Покупки и ежедневная награда
-async function action(path) {
- if (busy || processingTaps || tapQueue > 0 || !auth) return;
+async function upgrade(kind) {
+    if (!data || actionBusy || processing || queue > 0) return;
 
- busy = true;
+    const price = kind === "click"
+        ? getClickPrice(data)
+        : getEnergyPrice(data);
 
- el("clickBuy").disabled = true;
- el("energyBuy").disabled = true;
- el("daily").disabled = true;
+    if (data.balance < price) return;
 
- try {
-  const data = await request(path, "POST");
-  render(data);
-  el("status").textContent = "Успешно! ✨";
-  leaderboard();
- } catch (error) {
-  el("status").textContent = error.message;
-  await load();
- } finally {
-  busy = false;
-  if (state) render(state);
- }
+    actionBusy = true;
+    render();
+
+    try {
+        const result = await request("/api/upgrade/" + kind, {
+            method: "POST"
+        });
+
+        data = result;
+        showStatus("Улучшение куплено!");
+    } catch (e) {
+        showStatus("Не удалось купить. Обновляем данные...");
+        await load();
+    }
+
+    actionBusy = false;
+    render();
 }
 
-el("coin").addEventListener("click", tap);
+clickBtn.onclick = () => upgrade("click");
+energyBtn.onclick = () => upgrade("energy");
 
-el("clickBuy").addEventListener("click", () => {
- action("/api/upgrade/click");
-});
+document.getElementById("daily").onclick = async function() {
+    if (actionBusy || processing || queue > 0) return;
 
-el("energyBuy").addEventListener("click", () => {
- action("/api/upgrade/energy");
-});
+    actionBusy = true;
+    render();
 
-el("daily").addEventListener("click", () => {
- action("/api/daily");
-});
+    try {
+        const result = await request("/api/daily", {
+            method: "POST"
+        });
 
-load();
+        data = result;
+        showStatus("Ежедневная награда получена!");
+    } catch (e) {
+        showStatus("Награда уже получена или произошла ошибка.");
+        await load();
+    }
 
-// Автоматическое обновление каждые 10 секунд
-setInterval(async () => {
- if (!auth || busy || processingTaps || tapQueue > 0) return;
+    actionBusy = false;
+    render();
+};
 
- try {
-  render(await request("/api/me"));
- } catch {
-  el("status").textContent = "Нет связи с сервером";
- }
-}, 10000);
+async function loadTop() {
+    try {
+        const result = await request("/api/top");
+        const list = document.getElementById("leaders");
+
+        list.innerHTML = "";
+
+        const players = Array.isArray(result)
+            ? result
+            : (result.top || result.players || []);
+
+        players.forEach((player, i) => {
+            const li = document.createElement("li");
+
+            li.textContent =
+                `${i + 1}. ${player.username || player.name || "Игрок"} — ${player.balance ?? player.coins ?? 0}`;
+
+            list.appendChild(li);
+        });
+    } catch(e) {
+        document.getElementById("leaders").textContent =
+            "Таблица временно недоступна";
+    }
+}
+
+async function start() {
+    await load();
+    await loadTop();
+}
+
+start();
 </script>
 </body>
 </html>
