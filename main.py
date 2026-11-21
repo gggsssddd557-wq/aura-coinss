@@ -1,4 +1,4 @@
-import os
+эimport os
 import sqlite3
 import hashlib
 import hmac
@@ -54,8 +54,10 @@ def verify(data):
     if time.time() - int(values.get("auth_date", 0)) > 86400:
         raise HTTPException(401, "Expired data")
 
-    user = json.loads(values["user"])
-    return user
+    if "user" not in values:
+        raise HTTPException(401, "Missing user")
+
+    return json.loads(values["user"])
 
 
 init_db()
@@ -69,7 +71,6 @@ def home():
 @app.get("/api/me")
 def me(authorization: str = Header(None)):
     user = verify(authorization)
-
     uid = str(user["id"])
     name = user.get("username") or user.get("first_name", "Player")
 
