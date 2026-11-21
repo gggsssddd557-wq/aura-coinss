@@ -20,7 +20,11 @@ from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, W
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 WEB_APP_URL = "https://aura-coinss.onrender.com"
-INDEX_FILE = Path(__file__).resolve().parent / "index.html"
+BASE_DIR = Path(__file__).resolve().parent
+INDEX_FILE = BASE_DIR / "index.html"
+DASHBOARD_FILE = BASE_DIR / "dashboard.html"
+
+START_TIME = time.time()
 
 dp = Dispatcher()
 
@@ -45,6 +49,25 @@ def init_db():
                 energy_level INTEGER DEFAULT 0,
                 last_daily DOUBLE PRECISION DEFAULT 0
             )
+        """)
+
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS service_stats (
+                id INTEGER PRIMARY KEY,
+                starts INTEGER DEFAULT 0
+            )
+        """)
+
+        con.execute("""
+            INSERT INTO service_stats (id, starts)
+            VALUES (1, 0)
+            ON CONFLICT (id) DO NOTHING
+        """)
+
+        con.execute("""
+            UPDATE service_stats
+            SET starts = starts + 1
+            WHERE id = 1
         """)
 
 
@@ -201,6 +224,38 @@ def home():
     return FileResponse(INDEX_FILE)
 
 
+@app.get("/dashboard")
+def dashboard():
+    if not DASHBOARD_FILE.exists():
+        raise HTTPException(404, "dashboard.html not found")
+    return FileResponse(DASHBOARD_FILE)
+
+
+@app.get("/api/status")
+def status():
+    try:
+        with connect() as con:
+            starts = con.execute(
+                "SELECT starts FROM service_stats WHERE id=1"
+            ).fetchone()[0]
+
+            stats = con.execute("""
+                SELECT COUNT(*), COALESCE(SUM(coins), 0)
+                FROM users
+            """).fetchone()
+
+        return {
+            "status": "ok",
+            "uptime": int(time.time() - START_TIME),
+            "starts": starts,
+            "players": stats[0],
+            "coins": stats[1]
+        }
+
+    except Exception:
+        raise HTTPException(503, "Service unavailable")
+
+
 @app.get("/api/me")
 def me(authorization: str = Header(None)):
     uid, name = current_user(authorization)
@@ -315,3 +370,4 @@ def top():
         {"name": row[0], "coins": row[1]}
         for row in rows
     ]
+
