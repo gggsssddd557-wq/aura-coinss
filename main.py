@@ -1,3 +1,4 @@
+
 import os
 import hashlib
 import hmac
@@ -49,38 +50,55 @@ def init_db():
 
 
 def verify(data):
-    if not BOT_TOKEN or not data:
-        raise HTTPException(401, "Unauthorized")
+    if not BOT_TOKEN:
+        raise HTTPException(500, "BOT_TOKEN is not configured")
 
-    values = dict(parse_qsl(data))
+    if not data:
+        raise HTTPException(401, "Telegram initData is empty")
+
+    values = dict(parse_qsl(data, keep_blank_values=True))
     received = values.pop("hash", None)
 
     if not received:
-        raise HTTPException(401, "Invalid data")
+        raise HTTPException(401, "Telegram hash is missing")
 
     check = "\n".join(
-        f"{k}={v}" for k, v in sorted(values.items())
+        f"{key}={value}" for key, value in sorted(values.items())
     )
 
     secret = hmac.new(
-        b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256
+        b"WebAppData",
+        BOT_TOKEN.encode(),
+        hashlib.sha256
     ).digest()
 
     calculated = hmac.new(
-        secret, check.encode(), hashlib.sha256
+        secret,
+        check.encode(),
+        hashlib.sha256
     ).hexdigest()
 
     if not hmac.compare_digest(calculated, received):
-        raise HTTPException(401, "Invalid signature")
+        raise HTTPException(401, "Telegram signature is invalid")
 
     try:
-        if time.time() - int(values.get("auth_date", 0)) > 86400:
-            raise HTTPException(401, "Expired data")
+        auth_date = int(values.get("auth_date", "0"))
 
-        return json.loads(values["user"])
+        if time.time() - auth_date > 86400:
+            raise HTTPException(401, "Telegram data expired")
+
+        if auth_date > time.time() + 60:
+            raise HTTPException(401, "Invalid Telegram auth date")
+
+        user = json.loads(values["user"])
+
+        if not isinstance(user, dict) or "id" not in user:
+            raise HTTPException(401, "Invalid Telegram user")
+
+        return user
 
     except (KeyError, ValueError, json.JSONDecodeError):
-        raise HTTPException(401, "Invalid user data")
+        raise HTTPException(401, "Invalid Telegram user data")
 
 
 def current_user(authorization):
