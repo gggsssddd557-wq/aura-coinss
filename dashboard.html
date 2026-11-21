@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aura Coins | Панель</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#0b1020;color:#f1f5f9;
+ font-family:Arial,sans-serif;padding:22px
+}
+main{max-width:850px;margin:auto}
+h1{font-size:28px}
+.sub{color:#94a3b8}
+.grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+ gap:15px;margin-top:24px
+}
+.card{
+ background:#151e32;border:1px solid #27344e;
+ border-radius:18px;padding:22px
+}
+.card h3{color:#9caecb;font-size:14px;margin:0 0 14px}
+.value{font-size:30px;font-weight:bold}
+small{color:#94a3b8}
+.dot{
+ display:inline-block;width:10px;height:10px;border-radius:50%;
+ background:#22c55e;margin-right:8px;
+ animation:pulse 1.5s infinite
+}
+@keyframes pulse{
+ 50%{opacity:.3}
+}
+button{
+ background:#263754;color:white;border:0;border-radius:12px;
+ padding:12px 18px;margin-top:20px;font-size:15px
+}
+footer{margin-top:24px;color:#64748b;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>🪙 Aura Coins</h1>
+<p class="sub">Панель мониторинга сервера</p>
+
+<div class="card">
+<h3>Состояние сервера</h3>
+<div class="value" id="status">Проверка...</div>
+<small id="checked">Подключение</small>
+</div>
+
+<div class="grid">
+<div class="card">
+<h3>⏱ Время работы</h3>
+<div class="value" id="uptime">—</div>
+</div>
+<div class="card">
+<h3>🔄 Запуски сервера</h3>
+<div class="value" id="starts">—</div>
+</div>
+<div class="card">
+<h3>👥 Игроки</h3>
+<div class="value" id="players">—</div>
+</div>
+<div class="card">
+<h3>🪙 Всего монет</h3>
+<div class="value" id="coins">—</div>
+</div>
+</div>
+
+<button onclick="load()">Обновить сейчас</button>
+<footer>Aura Coins Monitor · обновление каждые 10 секунд</footer>
+</main>
+
+<script>
+function format(seconds){
+ seconds=Math.max(0,Math.floor(seconds));
+ const d=Math.floor(seconds/86400);
+ const h=Math.floor(seconds%86400/3600);
+ const m=Math.floor(seconds%3600/60);
+ const s=seconds%60;
+ return (d?d+"д ":"")+
+ (h? h+"ч ":"")+(m?m+"м ":"")+s+"с";
+}
+
+async function load(){
+ const status=document.getElementById("status");
+ try{
+  const r=await fetch("/api/status",{cache:"no-store"});
+  if(!r.ok)throw new Error();
+  const d=await r.json();
+  status.innerHTML='<span class="dot"></span>Работает';
+  document.getElementById("uptime").textContent=format(d.uptime);
+  document.getElementById("starts").textContent=d.starts;
+  document.getElementById("players").textContent=d.players;
+  document.getElementById("coins").textContent=
+    Number(d.coins).toLocaleString("ru-RU");
+  document.getElementById("checked").textContent=
+    "Проверено: "+new Date().toLocaleTimeString();
+ }catch(e){
+  status.textContent="Сервер недоступен";
+  document.getElementById("checked").textContent=
+    "Не удалось подключиться";
+ }
+}
+load();
+setInterval(load,10000);
+</script>
+</body>
+</html>
