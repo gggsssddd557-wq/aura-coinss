@@ -1,22 +1,35 @@
+
 import os
 import sqlite3
 import hashlib
 import hmac
 import json
 import time
+import asyncio
 from pathlib import Path
 from urllib.parse import parse_qsl
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
-app = FastAPI()
+from aiogram import Bot, Dispatcher
+from aiogram.filters import CommandStart
+from aiogram.types import (
+    Message,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    WebAppInfo
+)
+
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+WEB_APP_URL = "https://aura-coinss.onrender.com"
 DB = "coins.db"
 
 BASE_DIR = Path(__file__).resolve().parent
 INDEX_FILE = BASE_DIR / "index.html"
+
+dp = Dispatcher()
 
 
 def init_db():
@@ -64,6 +77,47 @@ def verify(data):
     except (KeyError, ValueError, json.JSONDecodeError):
         raise HTTPException(401, "Invalid user data")
 
+
+@dp.message(CommandStart())
+async def start_command(message: Message):
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[
+            InlineKeyboardButton(
+                text="Играть 🪙",
+                web_app=WebAppInfo(url=WEB_APP_URL)
+            )
+        ]]
+    )
+
+    await message.answer(
+        "Привет! Добро пожаловать в Aura Coins! 🪙\n"
+        "Нажми кнопку ниже, чтобы открыть игру.",
+        reply_markup=keyboard
+    )
+
+
+@asynccontextmanager
+async def lifespan(app):
+    bot = None
+    task = None
+
+    if BOT_TOKEN:
+        bot = Bot(token=BOT_TOKEN)
+        await bot.delete_webhook(drop_pending_updates=False)
+        task = asyncio.create_task(dp.start_polling(bot))
+
+    yield
+
+    if task:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+
+    if bot:
+        await bot.session.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 init_db()
 
