@@ -148,6 +148,7 @@ async function request(path, method = "GET") {
  });
 
  let data;
+
  try {
   data = await response.json();
  } catch {
@@ -239,42 +240,70 @@ async function load() {
  }
 }
 
-// Мгновенная реакция на тап
+// Мгновенное визуальное начисление
 function tap() {
- if (!auth || busy) return;
+ if (!auth || busy || !state) return;
+ if (state.energy <= 0) return;
 
  el("coin").classList.remove("pop");
  void el("coin").offsetWidth;
  el("coin").classList.add("pop");
 
+ const power = state.click_power;
+
+ // Сразу обновляем баланс и энергию на экране
+ state.coins += power;
+ state.energy -= 1;
+
+ el("coins").textContent = state.coins + " 🪙";
+ el("energy").textContent =
+  state.energy + " / " + state.max_energy;
+
+ el("energyBar").style.width =
+  Math.max(0, Math.min(100,
+   state.energy / state.max_energy * 100
+  )) + "%";
+
  tapQueue++;
+
  processTapQueue();
 }
 
-// Обработка тапов последовательно
+// Отправка тапов на сервер по очереди
 async function processTapQueue() {
  if (processingTaps) return;
 
  processingTaps = true;
+ let latestData = null;
+ let failed = false;
 
  while (tapQueue > 0) {
   tapQueue--;
 
   try {
-   const data = await request("/api/tap", "POST");
-   render(data);
+   latestData = await request("/api/tap", "POST");
   } catch (error) {
-   el("status").textContent = error.message;
+   el("status").textContent = "Ошибка синхронизации";
    tapQueue = 0;
-   await load();
+   failed = true;
    break;
   }
  }
 
+ // Обновляем серверные данные после завершения очереди
+ if (latestData) {
+  render(latestData);
+  el("status").textContent = "✨ Aura Coins подключена!";
+ }
+
  processingTaps = false;
+
+ if (failed) {
+  await load();
+ }
 }
 
-// Магазин и ежедневная награда
+// Покупки и ежедневная награда
 async function action(path) {
  if (busy || processingTaps || tapQueue > 0 || !auth) return;
 
@@ -314,7 +343,7 @@ el("daily").addEventListener("click", () => {
 
 load();
 
-// Обновление состояния каждые 10 секунд
+// Автоматическое обновление каждые 10 секунд
 setInterval(async () => {
  if (!auth || busy || processingTaps || tapQueue > 0) return;
 
