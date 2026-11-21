@@ -1,4 +1,4 @@
-эimport os
+import os
 import sqlite3
 import hashlib
 import hmac
