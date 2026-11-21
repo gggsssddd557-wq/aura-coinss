@@ -4,13 +4,19 @@ import hashlib
 import hmac
 import json
 import time
+from pathlib import Path
 from urllib.parse import parse_qsl
 
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 DB = "coins.db"
+
+BASE_DIR = Path(__file__).resolve().parent
+INDEX_FILE = BASE_DIR / "index.html"
 
 
 def init_db():
@@ -51,13 +57,12 @@ def verify(data):
     if not hmac.compare_digest(calculated, received):
         raise HTTPException(401, "Invalid signature")
 
-    if time.time() - int(values.get("auth_date", 0)) > 86400:
-        raise HTTPException(401, "Expired data")
-
-    if "user" not in values:
-        raise HTTPException(401, "Missing user")
-
-    return json.loads(values["user"])
+    try:
+        if time.time() - int(values.get("auth_date", 0)) > 86400:
+            raise HTTPException(401, "Expired data")
+        return json.loads(values["user"])
+    except (KeyError, ValueError, json.JSONDecodeError):
+        raise HTTPException(401, "Invalid user data")
 
 
 init_db()
@@ -65,7 +70,9 @@ init_db()
 
 @app.get("/")
 def home():
-    return {"status": "Aura Coins server is running"}
+    if not INDEX_FILE.exists():
+        raise HTTPException(404, "index.html not found")
+    return FileResponse(INDEX_FILE)
 
 
 @app.get("/api/me")
@@ -99,7 +106,8 @@ def tap(authorization: str = Header(None)):
             (uid, name)
         )
         con.execute(
-            "UPDATE users SET coins=coins+1 WHERE id=?", (uid,)
+            "UPDATE users SET name=?, coins=coins+1 WHERE id=?",
+            (name, uid)
         )
         row = con.execute(
             "SELECT coins FROM users WHERE id=?", (uid,)
